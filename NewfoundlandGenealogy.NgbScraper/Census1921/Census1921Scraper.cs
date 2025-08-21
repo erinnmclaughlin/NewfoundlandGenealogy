@@ -61,7 +61,8 @@ public sealed partial class Census1921Scraper : INgbScraper
                         }
 
                         headerCellText = headerCellText.Trim();
-                        headerCellLabels.Add(headerCellText);
+                        var canonicalText = Census1921HeaderMap.ToCanonical(headerCellText);
+                        headerCellLabels.Add($"{headerCellText} ({canonicalText})");
                     }
 
                     var maxRows = 10;
