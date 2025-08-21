@@ -9,6 +9,8 @@ public sealed class CensusTranscription
     public required string NgbUrl { get; set; }
     public required string MarkdownContent { get; set; }
     public string? Notes { get; set; }
+
+    public List<string> ColumnNames { get; set; } = [];
     
     public static string GetIdFromUrl(string url) => url.Split('/').Last().Split('.').First();
     //public List<CensusDwellingGroup> DwellingGroups { get; set; } = [];

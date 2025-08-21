@@ -93,7 +93,7 @@ public sealed partial class Census1921Scraper(IDbContextFactory<CensusDbContext>
                     o.UseReverseMarkdownForCellContent = false;
                     o.PreferThead = false;
                     o.SynthesizeHeaderWhenMissing = false;
-                    o.TableHeaderTransformer = x => Census1921HeaderMap.ToCanonical(x) ?? x;
+                    o.TableHeaderTransformer = x => CensusHeaderMap.ToCanonical(x) ?? x;
                 });
                 
                 var transcriptionId = CensusTranscription.GetIdFromUrl(transcriptionUrl);

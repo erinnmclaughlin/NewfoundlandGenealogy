@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using NewfoundlandGenealogy.CensusData.Utils;
 
 namespace NewfoundlandGenealogy.CensusData.MigrationService;
 
@@ -21,10 +22,11 @@ public sealed class Worker(
         try
         {
             var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-            await RunMigrationsAsync(dbContext, cancellationToken);
+            var strategy = dbContext.Database.CreateExecutionStrategy();
+            await strategy.ExecuteAsync(dbContext, RunMigrationsAsync, cancellationToken);
         }
         catch (Exception ex)
-        {
+        { 
             activity?.AddException(ex);
             throw;
         }
@@ -32,9 +34,18 @@ public sealed class Worker(
         _appLifetime.StopApplication();
     }
     
-    private static async Task RunMigrationsAsync(DbContext dbContext, CancellationToken cancellationToken)
+    private static async Task RunMigrationsAsync(CensusDbContext dbContext, CancellationToken cancellationToken)
     {
-        var strategy = dbContext.Database.CreateExecutionStrategy();
-        await strategy.ExecuteAsync(dbContext.Database.MigrateAsync, cancellationToken);
+        await dbContext.Database.MigrateAsync(cancellationToken);
+        
+        // todo: do something smarter here
+        var transcriptionsWithNoColumnNames = await dbContext.CensusTranscriptions.Where(x => !x.ColumnNames.Any()).ToListAsync(cancellationToken);
+        foreach (var transcription in transcriptionsWithNoColumnNames)
+        {
+            transcription.ColumnNames = MarkdownUtils.EnumerateTableHeadersInFirstTable(transcription.MarkdownContent).Distinct().ToList();
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
+    
 }

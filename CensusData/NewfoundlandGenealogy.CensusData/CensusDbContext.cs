@@ -40,6 +40,7 @@ public sealed class CensusDbContext(DbContextOptions<CensusDbContext> options) :
             builder.Property(x => x.NgbUrl).HasMaxLength(200);
             builder.Property(x => x.MarkdownContent).HasMaxLength(int.MaxValue).HasColumnType("text");
             builder.Property(x => x.Notes).HasMaxLength(int.MaxValue).HasColumnType("text");
+            builder.PrimitiveCollection(x => x.ColumnNames).HasDefaultValueSql("'{}'");
             
             builder.HasKey(x => new { x.CensusId, x.DistrictId, x.Id });
         });
