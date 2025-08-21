@@ -15,4 +15,9 @@
         <PackageReference Include="Microsoft.Playwright" Version="1.54.0" />
         <PackageReference Include="ReverseMarkdown" Version="4.7.0" />
     </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\CensusData\NewfoundlandGenealogy.CensusData\NewfoundlandGenealogy.CensusData.csproj" />
+      <ProjectReference Include="..\NewfoundlandGenealogy.ServiceDefaults\NewfoundlandGenealogy.ServiceDefaults.csproj" />
+    </ItemGroup>
 </Project>

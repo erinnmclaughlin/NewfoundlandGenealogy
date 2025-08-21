@@ -1,4 +1,5 @@
-﻿using FuzzySharp;
+﻿using System.Text.RegularExpressions;
+using FuzzySharp;
 
 namespace NewfoundlandGenealogy.NgbScraper.Census1921;
 
@@ -82,6 +83,11 @@ public static class Census1921HeaderMap
 
     public static string? ToCanonical(string headerToken)
     {
+        if (headerToken.StartsWith("Col ") || headerToken.StartsWith("Col. "))
+        {
+            headerToken = Regex.Replace(headerToken, "Col.? \\d+", "");
+        }
+        
         if (Exact.TryGetValue(headerToken.Trim(), out var c)) return c;
         // fuzzy fallback against keys:
         var best = Exact.Keys

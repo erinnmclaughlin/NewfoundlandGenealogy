@@ -1,43 +1,90 @@
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Playwright;
+using NewfoundlandGenealogy.CensusData;
 
 namespace NewfoundlandGenealogy.NgbScraper.Census1921;
 
-public sealed partial class Census1921Scraper : INgbScraper
+public sealed partial class Census1921Scraper(IDbContextFactory<CensusDbContext> dbContextFactory, ILogger<Census1921Scraper> logger) : INgbScraper
 {
+    private const string CensusId = "C1921";
     private const string BaseUrl = "https://ngb.chebucto.org";
-    private const string IndexPageUrl = $"{BaseUrl}/C1921/121-dist-idx.shtml";
+    private const string IndexPageUrl = $"{BaseUrl}/{CensusId}/121-dist-idx.shtml";
 
+    private readonly IDbContextFactory<CensusDbContext> _dbContextFactory = dbContextFactory;
+    private readonly ILogger<Census1921Scraper> _logger = logger;
+    
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        var dir = Directory.CreateDirectory(DateTime.Now.ToString("yyyyMMddHHmmss"));
-        
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+        var strategy = dbContext.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(dbContext, ScrapeCensusData, cancellationToken);
+    }
+
+    private async Task ScrapeCensusData(CensusDbContext dbContext, CancellationToken cancellationToken)
+    {
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync();
         var page = await browser.NewPageAsync();
 
         await page.GotoAsync(IndexPageUrl);
 
-        foreach (var (district, districtUrl) in await GetAnchorTagsAsync(page))
+        if (!await dbContext.Censuses.AnyAsync(x => x.Id == CensusId, cancellationToken))
+        {
+            dbContext.Add(new Census
+            {
+                Id = CensusId,
+                DisplayName = "1921 Newfoundland Population Census",
+                NgbUrl = IndexPageUrl,
+                CensusYear = 1921
+            });
+            
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        
+        foreach (var (districtName, districtUrl) in await GetAnchorTagsAsync(page))
         {
             if (districtUrl.Contains("21-policies"))
                 continue;
             
             await page.GotoAsync(districtUrl);
+            
+            var districtId = CensusDistrict.GetIdFromUrl(districtUrl);
 
-            foreach (var (community, communityUrl) in await GetAnchorTagsAsync(page))
+            if (!await dbContext.CensusDistricts.AnyAsync(x => x.CensusId == CensusId && x.Id == districtId, cancellationToken))
             {
-                if (communityUrl.Contains("21-policies"))
+                dbContext.Add(new CensusDistrict
+                {
+                    Id = districtId,
+                    CensusId = CensusId,
+                    DisplayName = districtName,
+                    NgbUrl = districtUrl
+                });
+                
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            
+            var transcriptions = await dbContext.CensusTranscriptions
+                .Where(x => x.CensusId == CensusId && x.DistrictId == districtId)
+                .ToListAsync(cancellationToken);
+
+            var newTranscriptionIds = new List<string>();
+            
+            foreach (var (transcriptionName, transcriptionUrl) in await GetAnchorTagsAsync(page))
+            {
+                if (transcriptionUrl.Contains("21-policies"))
                     continue;
 
-                await page.GotoAsync(communityUrl);
+                await page.GotoAsync(transcriptionUrl);
 
                 var html = await page.InnerHTMLAsync("body");
+                html = ColumnLabelPattern().Replace(html, string.Empty);
                 html = SphiderIgnore().Replace(html, string.Empty);
                 html = MenuContainerIgnore().Replace(html, string.Empty);
 
-                var fileName = $"{district.Replace(" ", "-")}_{community.Replace(" ", "-")}.md";
-                await using var fileStream = new FileStream(Path.Combine(dir.FullName, fileName), FileMode.Create);
+                //var fileName = $"{districtName.Replace(" ", "-")}_{transcriptionName.Replace(" ", "-")}.md";
+                //await using var fileStream = new FileStream(Path.Combine(dir.FullName, fileName), FileMode.Create);
                 var md = HtmlToMarkdownConverter.ConvertDocument(html, o =>
                 {
                     o.CombineMultipleHeaderRows = true;
@@ -49,17 +96,35 @@ public sealed partial class Census1921Scraper : INgbScraper
                     o.TableHeaderTransformer = x => Census1921HeaderMap.ToCanonical(x) ?? x;
                 });
                 
-                await using var writer = new StreamWriter(fileStream);
-                await writer.WriteAsync(
-                    $"""
-                    {md}
+                var transcriptionId = CensusTranscription.GetIdFromUrl(transcriptionUrl);
+                var transcription = transcriptions.FirstOrDefault(x => x.Id == transcriptionId);
+
+                if (transcription == null)
+                {
+                    if (newTranscriptionIds.Contains(transcriptionId))
+                    {
+                        _logger.LogWarning("Found duplicate transcription ID ({TranscriptionId}) for district at URL {DistrictUrl}. Skipping.", transcriptionId, districtUrl);
+                        continue;
+                    }
                     
-                    [Main Page Source]({IndexPageUrl})
-                    
-                    [District Page Source]({districtUrl})
-                    
-                    [Community Page Source]({communityUrl})
-                    """);
+                    transcription = new CensusTranscription
+                    {
+                        Id = transcriptionId,
+                        CensusId = CensusId,
+                        DistrictId = districtId,
+                        DisplayName = transcriptionName,
+                        NgbUrl = transcriptionUrl,
+                        MarkdownContent = md
+                    };
+                    dbContext.Add(transcription);
+                    newTranscriptionIds.Add(transcriptionId);
+                }
+                else
+                {
+                    transcription.MarkdownContent = md;
+                }
+               
+                await dbContext.SaveChangesAsync(cancellationToken);
             }
             
             await page.GoBackAsync();

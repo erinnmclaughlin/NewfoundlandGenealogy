@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-NewfoundlandGenealogy.CensusData.MigrationService-8e7b9fb1-cc43-4dad-9077-2f67380623c3</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\NewfoundlandGenealogy.ServiceDefaults\NewfoundlandGenealogy.ServiceDefaults.csproj" />
+      <ProjectReference Include="..\NewfoundlandGenealogy.CensusData\NewfoundlandGenealogy.CensusData.csproj" />
+    </ItemGroup>
+</Project>

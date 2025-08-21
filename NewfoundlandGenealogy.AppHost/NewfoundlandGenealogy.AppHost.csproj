@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <Sdk Name="Aspire.AppHost.Sdk" Version="9.4.1"/>
+    <Sdk Name="Aspire.AppHost.Sdk" Version="9.4.0"/>
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -12,7 +12,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Aspire.Hosting.AppHost" Version="9.4.1" />
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="9.4.0" />
+        <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="9.4.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\CensusData\NewfoundlandGenealogy.CensusData.MigrationService\NewfoundlandGenealogy.CensusData.MigrationService.csproj" />
+      <ProjectReference Include="..\NewfoundlandGenealogy.NgbScraper\NewfoundlandGenealogy.NgbScraper.csproj" />
     </ItemGroup>
 
 </Project>
