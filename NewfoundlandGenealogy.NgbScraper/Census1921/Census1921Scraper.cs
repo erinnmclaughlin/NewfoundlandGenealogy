@@ -10,6 +10,8 @@ public sealed partial class Census1921Scraper : INgbScraper
 
     public async Task ExecuteAsync(CancellationToken cancellationToken)
     {
+        var dir = Directory.CreateDirectory(DateTime.Now.ToString("yyyyMMddHHmmss"));
+        
         using var playwright = await Playwright.CreateAsync();
         await using var browser = await playwright.Chromium.LaunchAsync();
         var page = await browser.NewPageAsync();
@@ -21,77 +23,46 @@ public sealed partial class Census1921Scraper : INgbScraper
             if (districtUrl.Contains("21-policies"))
                 continue;
             
-            Console.WriteLine(district);
-            
             await page.GotoAsync(districtUrl);
 
             foreach (var (community, communityUrl) in await GetAnchorTagsAsync(page))
             {
                 if (communityUrl.Contains("21-policies"))
                     continue;
-                
-                Console.WriteLine($"* {community}");
 
                 await page.GotoAsync(communityUrl);
 
-                var tables = await page.Locator("table").AllAsync();
+                var html = await page.InnerHTMLAsync("body");
+                html = SphiderIgnore().Replace(html, string.Empty);
+                html = MenuContainerIgnore().Replace(html, string.Empty);
 
-                foreach (var table in tables)
+                var fileName = $"{district.Replace(" ", "-")}_{community.Replace(" ", "-")}.md";
+                await using var fileStream = new FileStream(Path.Combine(dir.FullName, fileName), FileMode.Create);
+                var md = HtmlToMarkdownConverter.ConvertDocument(html, o =>
                 {
-                    var headerCells = await table.Locator("th").AllAsync();
-
-                    if (!headerCells.Any())
-                        continue;
+                    o.CombineMultipleHeaderRows = true;
+                    o.RepeatTextAcrossSpans = true;
+                    o.TrimCellText = true;
+                    o.UseReverseMarkdownForCellContent = false;
+                    o.PreferThead = false;
+                    o.SynthesizeHeaderWhenMissing = false;
+                    o.TableHeaderTransformer = x => Census1921HeaderMap.ToCanonical(x) ?? x;
+                });
+                
+                await using var writer = new StreamWriter(fileStream);
+                await writer.WriteAsync(
+                    $"""
+                    {md}
                     
-                    var headerCellLabels = new List<string>();
+                    [Main Page Source]({IndexPageUrl})
                     
-                    foreach (var headerCell in headerCells)
-                    {
-                        var headerCellText = await headerCell.InnerTextAsync();
-                        headerCellText = headerCellText.Replace("\r", "").Replace("\n", " ");
-                        
-                        while (headerCellText.Contains("  "))
-                            headerCellText = headerCellText.Replace("  ", " ");
-                        
-                        headerCellText = ColumnLabelPattern().Replace(headerCellText, "");
-
-                        if (headerCellText.StartsWith("Col. "))
-                        {
-                            headerCellText = headerCellText.Replace("Col. ", "");
-                        }
-
-                        headerCellText = headerCellText.Trim();
-                        var canonicalText = Census1921HeaderMap.ToCanonical(headerCellText);
-                        headerCellLabels.Add($"{headerCellText} ({canonicalText})");
-                    }
-
-                    const int maxPreviewCount = 4;
-                    var count = 0;
-                    var rows = await table.Locator("tr").AllAsync();
-                    foreach (var row in rows)
-                    {
-                        var cells = await row.Locator("td").AllAsync();
-
-                        if (cells.Count != headerCellLabels.Count)
-                            continue;
-
-                        if (count++ == maxPreviewCount)
-                            break;
-
-                        for (var k = 0; k < cells.Count; k++)
-                        {
-                            Console.WriteLine($"{headerCellLabels[k]}: {await cells[k].InnerTextAsync()}");
-                        }
-                        
-                        Console.WriteLine();
-                    }
-                }
+                    [District Page Source]({districtUrl})
+                    
+                    [Community Page Source]({communityUrl})
+                    """);
             }
             
-            Console.WriteLine();
             await page.GoBackAsync();
-
-            return;
         }
     }
 
@@ -120,6 +91,12 @@ public sealed partial class Census1921Scraper : INgbScraper
 
     [GeneratedRegex(@"(?im)^(?:\s*[*•\-]?\s*)(?:(?:Col(?:umn)?\.?\s*)?\d+(?:[A-Za-z](?![A-Za-z]))?)(?:\s*[:.)-]?\s*)", RegexOptions.None, "en-US")]
     private static partial Regex ColumnLabelPattern();
+    
+    [GeneratedRegex(@"<!--sphider_noindex-->.*?<!--/sphider_noindex-->", RegexOptions.Singleline)]
+    private static partial Regex SphiderIgnore();
+    
+    [GeneratedRegex(@"<div[^>]*class\s*=\s*[""']?mmenucontainer[""']?[^>]*>.*?</div>", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    private static partial Regex MenuContainerIgnore();
 }
 
 public sealed record AnchorTagInfo(string DisplayName, string Href);
