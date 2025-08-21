@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewfoundlandGenealogy.AppHost", "NewfoundlandGenealogy.AppHost\NewfoundlandGenealogy.AppHost.csproj", "{3D680D74-F9B7-4CBE-BA8E-322AC15358AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewfoundlandGenealogy.ServiceDefaults", "NewfoundlandGenealogy.ServiceDefaults\NewfoundlandGenealogy.ServiceDefaults.csproj", "{26DEC7C2-B5A0-49F7-AA66-0AAAD028F522}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewfoundlandGenealogy.Census1921", "Census1921\NewfoundlandGenealogy.Census1921\NewfoundlandGenealogy.Census1921.csproj", "{64477CA9-E0CA-4942-954A-24D635DCFA21}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewfoundlandGenealogy.NgbScraper", "NewfoundlandGenealogy.NgbScraper\NewfoundlandGenealogy.NgbScraper.csproj", "{40A87183-B7FF-401D-A413-42BE296B8D1F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3D680D74-F9B7-4CBE-BA8E-322AC15358AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D680D74-F9B7-4CBE-BA8E-322AC15358AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D680D74-F9B7-4CBE-BA8E-322AC15358AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D680D74-F9B7-4CBE-BA8E-322AC15358AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26DEC7C2-B5A0-49F7-AA66-0AAAD028F522}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26DEC7C2-B5A0-49F7-AA66-0AAAD028F522}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26DEC7C2-B5A0-49F7-AA66-0AAAD028F522}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26DEC7C2-B5A0-49F7-AA66-0AAAD028F522}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64477CA9-E0CA-4942-954A-24D635DCFA21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64477CA9-E0CA-4942-954A-24D635DCFA21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64477CA9-E0CA-4942-954A-24D635DCFA21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64477CA9-E0CA-4942-954A-24D635DCFA21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40A87183-B7FF-401D-A413-42BE296B8D1F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40A87183-B7FF-401D-A413-42BE296B8D1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40A87183-B7FF-401D-A413-42BE296B8D1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40A87183-B7FF-401D-A413-42BE296B8D1F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

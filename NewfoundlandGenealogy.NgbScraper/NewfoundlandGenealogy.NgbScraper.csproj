@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-NewfoundlandGenealogy.NgbScraper-2bcf46af-8bdc-4540-833a-6f85bff0e746</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="FuzzySharp" Version="2.0.2" />
+        <PackageReference Include="HtmlAgilityPack" Version="1.12.2" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8"/>
+        <PackageReference Include="Microsoft.Playwright" Version="1.54.0" />
+    </ItemGroup>
+</Project>
