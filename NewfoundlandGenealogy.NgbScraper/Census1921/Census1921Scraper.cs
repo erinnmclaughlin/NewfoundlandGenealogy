@@ -65,7 +65,8 @@ public sealed partial class Census1921Scraper : INgbScraper
                         headerCellLabels.Add($"{headerCellText} ({canonicalText})");
                     }
 
-                    var maxRows = 10;
+                    const int maxPreviewCount = 4;
+                    var count = 0;
                     var rows = await table.Locator("tr").AllAsync();
                     foreach (var row in rows)
                     {
@@ -74,8 +75,8 @@ public sealed partial class Census1921Scraper : INgbScraper
                         if (cells.Count != headerCellLabels.Count)
                             continue;
 
-                        if (maxRows-- == 0)
-                            return;
+                        if (count++ == maxPreviewCount)
+                            break;
 
                         for (var k = 0; k < cells.Count; k++)
                         {
@@ -84,11 +85,7 @@ public sealed partial class Census1921Scraper : INgbScraper
                         
                         Console.WriteLine();
                     }
-
-                    return;
                 }
-                
-                return;
             }
             
             Console.WriteLine();
