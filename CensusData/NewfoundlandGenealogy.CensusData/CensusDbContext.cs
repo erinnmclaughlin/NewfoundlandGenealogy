@@ -29,6 +29,7 @@ public sealed class CensusDbContext(DbContextOptions<CensusDbContext> options) :
             builder.Property(x => x.Notes).HasMaxLength(int.MaxValue).HasColumnType("text");
 
             builder.HasKey(x => new { x.CensusId, x.Id });
+            builder.HasOne<Census>().WithMany(x => x.Districts).HasForeignKey(x => x.CensusId);
         });
 
         modelBuilder.Entity<CensusTranscription>(builder =>
@@ -43,6 +44,7 @@ public sealed class CensusDbContext(DbContextOptions<CensusDbContext> options) :
             builder.PrimitiveCollection(x => x.ColumnNames).HasDefaultValueSql("'{}'");
             
             builder.HasKey(x => new { x.CensusId, x.DistrictId, x.Id });
+            builder.HasOne<CensusDistrict>().WithMany(x => x.Transcriptions).HasForeignKey(x => new { x.CensusId, x.DistrictId });
         });
     }
 }

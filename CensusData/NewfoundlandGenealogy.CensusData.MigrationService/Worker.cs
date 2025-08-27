@@ -39,9 +39,11 @@ public sealed class Worker(
         await dbContext.Database.MigrateAsync(cancellationToken);
         
         // todo: do something smarter here
-        var transcriptionsWithNoColumnNames = await dbContext.CensusTranscriptions.Where(x => !x.ColumnNames.Any()).ToListAsync(cancellationToken);
-        foreach (var transcription in transcriptionsWithNoColumnNames)
+        var transcriptions = await dbContext.CensusTranscriptions.ToListAsync(cancellationToken);
+        
+        foreach (var transcription in transcriptions.Where(x => x.MarkdownContent.Contains('`')))
         {
+            transcription.MarkdownContent = transcription.MarkdownContent.Replace("`", "");
             transcription.ColumnNames = MarkdownUtils.EnumerateTableHeadersInFirstTable(transcription.MarkdownContent).Distinct().ToList();
         }
 
